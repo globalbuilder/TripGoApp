@@ -1,3 +1,5 @@
+// lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -12,8 +14,14 @@ import 'features/accounts/domain/usecases/register.dart';
 import 'features/accounts/domain/usecases/update_profile.dart';
 import 'features/accounts/presentation/blocs/accounts_bloc.dart';
 
-// Settings Dependency
+// Settings
 import 'features/settings/presentation/blocs/settings_bloc.dart';
+
+// Attractions
+import 'features/attractions/presentation/blocs/categories_bloc/categories_bloc.dart';
+import 'features/attractions/presentation/blocs/attractions_bloc/attractions_bloc.dart';
+import 'features/attractions/presentation/blocs/favorites_bloc/favorites_bloc.dart';
+import 'features/attractions/presentation/blocs/feedback_bloc/feedback_bloc.dart';
 
 import 'injection.dart' as di;
 import 'app_router.dart';
@@ -38,6 +46,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MultiBlocProvider(
         providers: [
+          // Accounts Bloc
           BlocProvider<AccountsBloc>(
             create: (_) => AccountsBloc(
               loginUseCase: di.sl<Login>(),
@@ -48,12 +57,27 @@ class MyApp extends StatelessWidget {
               changePasswordUseCase: di.sl<ChangePassword>(),
             ),
           ),
+
+          // Settings Bloc
           BlocProvider<SettingsBloc>(
             create: (_) => di.sl<SettingsBloc>(),
           ),
+
+          // Attractions Feature BLoCs
+          BlocProvider<CategoriesBloc>(
+            create: (_) => di.sl<CategoriesBloc>(),
+          ),
+          BlocProvider<AttractionsBloc>(
+            create: (_) => di.sl<AttractionsBloc>(),
+          ),
+          BlocProvider<FavoritesBloc>(
+            create: (_) => di.sl<FavoritesBloc>(),
+          ),
+          BlocProvider<FeedbackBloc>(
+            create: (_) => di.sl<FeedbackBloc>(),
+          ),
         ],
-        // Provide ThemeManager from GetIt through a ChangeNotifierProvider,
-        // then use Consumer to rebuild MaterialApp when theme changes.
+        // Provide ThemeManager from GetIt through a ChangeNotifierProvider
         child: ChangeNotifierProvider<ThemeManager>.value(
           value: di.sl<ThemeManager>(),
           child: Consumer<ThemeManager>(
@@ -62,7 +86,6 @@ class MyApp extends StatelessWidget {
                 title: 'TripGo',
                 debugShowCheckedModeBanner: false,
                 theme: themeManager.currentTheme,
-                // The initialRoute and onGenerateRoute handle navigation.
                 initialRoute: AppRouter.splash,
                 onGenerateRoute: AppRouter.generateRoute,
               );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../app_router.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_bottom_bar.dart';
@@ -9,29 +10,38 @@ import '../../../accounts/presentation/blocs/accounts_bloc.dart';
 import '../../../accounts/presentation/blocs/accounts_event.dart';
 import '../../../accounts/presentation/blocs/accounts_state.dart';
 
+// IMPORT the real pages
+import '../../../attractions/presentation/pages/attractions_screen.dart';
+import '../../../attractions/presentation/pages/categories_screen.dart';
+import '../../../attractions/presentation/pages/map_screen.dart';
+// If you'd like to implement search or notifications, import those pages too.
+
 class HomeScreen extends StatefulWidget {
   static const routeName = '/home';
+
   const HomeScreen({Key? key}) : super(key: key);
-  
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+
+  // The actual pages/tabs for this HomeScreen
   final List<Widget> _pages = const [
     AttractionsPage(),
     MapScreen(),
-    CategoriesScreen(),
+    CategoriesPage(),
   ];
-  
+
   @override
   void initState() {
     super.initState();
     // Fetch user info on HomeScreen initialization.
     context.read<AccountsBloc>().add(FetchUserInfoEvent());
   }
-  
+
   Future<bool> _onWillPop() async {
     final shouldExit = await showExitConfirmationDialog(context);
     if (shouldExit) {
@@ -39,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     return false;
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -50,24 +60,27 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             IconButton(
               icon: const Icon(Icons.search),
-              onPressed: () async {
-                
-                // Later, implement search screen navigation.
+              onPressed: () {
+                // Navigate to the search screen
+                Navigator.pushNamed(context, AppRouter.searchAttractions);
               },
             ),
             IconButton(
               icon: const Icon(Icons.notifications),
               onPressed: () {
-                // Later, implement notification screen navigation.
+                // If you have a Notifications page or route, navigate there
+                // e.g. Navigator.pushNamed(context, AppRouter.notifications);
               },
             ),
           ],
         ),
+        // Drawer with user info
         drawer: BlocBuilder<AccountsBloc, AccountsState>(
           builder: (context, state) {
             final username = state.user?.username ?? "";
             final email = state.user?.email ?? "";
             final profileImageUrl = state.user?.imageUrl ?? "";
+
             return CustomDrawer(
               username: username,
               email: email,
@@ -79,10 +92,11 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
         ),
-        // body: GlobalConnectivityBanner(
-        //   child: _pages[_currentIndex],
-        // ),
-        body:_pages[_currentIndex],
+
+        // Main content
+        body: _pages[_currentIndex],
+
+        // Bottom Nav Bar
         bottomNavigationBar: CustomBottomBar(
           currentIndex: _currentIndex,
           onTap: (index) {
@@ -91,41 +105,21 @@ class _HomeScreenState extends State<HomeScreen> {
             });
           },
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.list), label: "Attractions"),
-            BottomNavigationBarItem(icon: Icon(Icons.map), label: "Map"),
-            BottomNavigationBarItem(icon: Icon(Icons.category), label: "Categories"),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.list),
+              label: "Attractions",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.map),
+              label: "Map",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.category),
+              label: "Categories",
+            ),
           ],
         ),
       ),
     );
-  }
-}
-
-// Stub pages for the HomeScreen tabs:
-
-class AttractionsPage extends StatelessWidget {
-  const AttractionsPage({Key? key}) : super(key: key);
-  
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text("Attractions Page: List of Attractions"));
-  }
-}
-
-class MapScreen extends StatelessWidget {
-  const MapScreen({Key? key}) : super(key: key);
-  
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text("Map Screen: Google Map of Attractions"));
-  }
-}
-
-class CategoriesScreen extends StatelessWidget {
-  const CategoriesScreen({Key? key}) : super(key: key);
-  
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text("Categories Screen: List of Categories"));
   }
 }
