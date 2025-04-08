@@ -1,5 +1,3 @@
-// lib/features/app/presentation/pages/splash_screen.dart
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,12 +13,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _checkAuthStatus();
-  }
-  
   Future<void> _checkAuthStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -34,9 +26,14 @@ class _SplashScreenState extends State<SplashScreen> {
   }
   
   @override
+  void initState(){
+    super.initState();
+    _checkAuthStatus();
+  }
+  
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Gradient background for a "fancy" splash screen.
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

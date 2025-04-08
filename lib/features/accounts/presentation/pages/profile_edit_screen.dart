@@ -4,43 +4,44 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../app_router.dart';
 import '../blocs/accounts_bloc.dart';
 import '../blocs/accounts_event.dart';
 import '../blocs/accounts_state.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   static const routeName = '/profile/edit';
-
-  const ProfileEditScreen({super.key});
-
+  const ProfileEditScreen({Key? key}) : super(key: key);
+  
   @override
   State<ProfileEditScreen> createState() => _ProfileEditScreenState();
 }
 
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _formKey = GlobalKey<FormState>();
-
+  
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _emailController = TextEditingController();
-
+  
   final ImagePicker _picker = ImagePicker();
   XFile? _pickedImage;
-
+  
   late AccountsBloc _accountsBloc;
   bool _isUpdating = false;
-
+  
   @override
   void initState() {
     super.initState();
     _accountsBloc = context.read<AccountsBloc>();
     _accountsBloc.add(FetchUserInfoEvent());
   }
-
+  
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
@@ -49,7 +50,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       });
     }
   }
-
+  
   void _updateProfile() {
     if (_formKey.currentState!.validate()) {
       setState(() => _isUpdating = true);
@@ -62,31 +63,33 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       }, imageFile: _pickedImage));
     }
   }
-
+  
   void _navigateToChangePassword() {
-    Navigator.pushNamed(context, '/change-password');
+    Navigator.pushNamed(context, AppRouter.changePassword);
   }
-
+  
   @override
   Widget build(BuildContext context) {
+    Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
+        title: "Edit Profile",
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text("Edit Profile"),
       ),
       body: BlocListener<AccountsBloc, AccountsState>(
         listener: (context, state) {
-          if (state.status == AccountsStatus.error) {
+          if (state.status == AccountsStatus.error && state.errorMessage != null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? "Error updating profile")),
+              SnackBar(content: Text(state.errorMessage!))
             );
             setState(() => _isUpdating = false);
-          } else if (state.status == AccountsStatus.authenticated && _isUpdating) {
+          }
+          if (state.status == AccountsStatus.authenticated && _isUpdating) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Profile updated successfully!")),
+              const SnackBar(content: Text("Profile updated successfully!"))
             );
             Navigator.pop(context);
           }
@@ -95,17 +98,18 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           builder: (context, state) {
             if (state.status == AccountsStatus.loading) {
               return const Center(child: CircularProgressIndicator());
-            } else if (state.user == null) {
+            }
+            if (state.user == null) {
               return const Center(child: Text("No user data."));
             }
-
+            
             final user = state.user!;
             _firstNameController.text = user.firstName ?? "";
             _lastNameController.text = user.lastName ?? "";
             _phoneController.text = user.phoneNumber ?? "";
             _addressController.text = user.address ?? "";
             _emailController.text = user.email ?? "";
-
+            
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(

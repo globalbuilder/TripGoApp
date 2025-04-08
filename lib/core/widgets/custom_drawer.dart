@@ -1,9 +1,8 @@
-// lib/core/widgets/custom_drawer.dart
-
 import 'package:flutter/material.dart';
 
-/// A side drawer with a header showing a gradient background, profile avatar, username, and email.
-/// It includes navigation items (Profile, Favorites, Settings, and Logout) all together.
+/// A side drawer for the Home screen.
+/// - If [username] or [email] are empty, they will be shown as empty strings.
+/// - When a drawer item is tapped, the drawer closes before navigating.
 class CustomDrawer extends StatelessWidget {
   final String username;
   final String email;
@@ -20,12 +19,16 @@ class CustomDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // If username or email are empty, use empty strings.
+    final displayUsername = username.trim();
+    final displayEmail = email.trim();
+
     final theme = Theme.of(context);
     return Drawer(
       child: SafeArea(
         child: Column(
           children: [
-            // Header with gradient background using theme colors.
+            // Header with gradient background.
             Container(
               height: 200,
               width: double.infinity,
@@ -45,23 +48,21 @@ class CustomDrawer extends StatelessWidget {
                   CircleAvatar(
                     radius: 40,
                     backgroundColor: Colors.white,
-                    backgroundImage: (profileImageUrl.isNotEmpty &&
-                            profileImageUrl.startsWith('http'))
+                    backgroundImage: (profileImageUrl.isNotEmpty && profileImageUrl.startsWith('http'))
                         ? NetworkImage(profileImageUrl)
-                        : const AssetImage('assets/images/avatar_placeholder.png')
-                            as ImageProvider,
+                        : const AssetImage('assets/images/avatar_placeholder.png') as ImageProvider,
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    username.isNotEmpty ? username : "Guest",
+                    displayUsername,
                     style: theme.textTheme.titleLarge?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  if (email.isNotEmpty)
+                  if (displayEmail.isNotEmpty)
                     Text(
-                      email,
+                      displayEmail,
                       style: theme.textTheme.titleSmall?.copyWith(
                         color: Colors.white70,
                       ),
@@ -69,29 +70,42 @@ class CustomDrawer extends StatelessWidget {
                 ],
               ),
             ),
-            // Navigation items are now grouped together in order.
+            // Navigation items.
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text("Profile"),
-              onTap: () => Navigator.pushNamed(context, '/profile'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/profile');
+              },
             ),
             ListTile(
               leading: const Icon(Icons.favorite),
               title: const Text("Favorites"),
-              onTap: () => Navigator.pushNamed(context, '/favorites'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/favorites');
+              },
             ),
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text("Settings"),
-              onTap: () => Navigator.pushNamed(context, '/settings'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/settings');
+              },
             ),
+            const Divider(),
             ListTile(
               leading: const Icon(Icons.exit_to_app, color: Colors.red),
               title: const Text(
                 "Logout",
                 style: TextStyle(color: Colors.red),
               ),
-              onTap: onLogout,
+              onTap: () {
+                Navigator.pop(context);
+                onLogout();
+              },
             ),
           ],
         ),

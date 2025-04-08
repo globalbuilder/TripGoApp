@@ -1,10 +1,7 @@
-// lib/core/widgets/custom_bottom_bar.dart
-
 import 'package:flutter/material.dart';
 
-/// A bottom navigation bar with advanced styling for selected items.
-/// - Background color is the theme's primary color.
-/// - The selected/unselected colors derive from onPrimary.
+/// A bottom navigation bar for the Home screen.
+/// The first tab is now labeled "Attractions" (replacing "Home").
 class CustomBottomBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -20,7 +17,6 @@ class CustomBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
       backgroundColor: theme.colorScheme.primary,

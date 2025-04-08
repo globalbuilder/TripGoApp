@@ -1,9 +1,6 @@
-// lib/core/widgets/custom_app_bar.dart
-
 import 'package:flutter/material.dart';
 
-/// A reusable app bar that uses colors from the theme,
-/// with an optional leading widget and actions.
+/// A reusable app bar specifically for the Home screen.
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leading;
   final String title;
@@ -18,7 +15,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get colors from the theme (using the app_theme values).
     final appBarColor = Theme.of(context).colorScheme.primary;
     final textColor = Theme.of(context).colorScheme.onPrimary;
 

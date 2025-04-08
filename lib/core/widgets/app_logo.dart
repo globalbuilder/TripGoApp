@@ -9,10 +9,10 @@ class AppLogo extends StatelessWidget {
   final Color? color;
 
   const AppLogo({
-    Key? key,
+    super.key,
     this.size = 150,
     this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -1,23 +1,24 @@
 // lib/core/errors/app_exceptions.dart
 
-/// Common exceptions that you might throw or catch in your application.
-///
-/// You can extend these or create new ones as needed.
-class ServerException implements Exception {
+import '../locale/locale_keys.g.dart';
+
+class AppException implements Exception {
   final String message;
-  ServerException(this.message);
+  final String? prefix;
+  final String? suffix;
+
+  AppException([this.message = "An error occurred", this.prefix, this.suffix]);
 
   @override
-  String toString() => 'ServerException: $message';
+  String toString() => "${prefix ?? ''}$message${suffix ?? ''}";
 }
 
-class NetworkException implements Exception {
-  final String message;
-  NetworkException(this.message);
-
-  @override
-  String toString() => 'NetworkException: $message';
+class NetworkException extends AppException {
+  NetworkException([String message = LocaleKeys.networkError])
+      : super(message, "Network Error: ");
 }
 
-/// More specific exceptions can be added here, e.g.:
-/// AuthException, CacheException, NotFoundException, etc.
+class ServerException extends AppException {
+  ServerException([String message = LocaleKeys.serverError])
+      : super(message, "Server Error: ");
+}

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import '../errors/app_exceptions.dart';
 import 'network_checker.dart';
 import 'preferences_helper.dart';
@@ -132,6 +133,48 @@ class ApiClient {
     }
   }
 
+  /// NEW: Handle multipart form data (e.g., uploading images).
+  Future<dynamic> uploadMultipart({
+    required String url,
+    required Map<String, String> fields,
+    String? filePath,            // null if no file
+    String fileFieldName = 'image',
+  }) async {
+    await _checkInternetConnection();
+
+    final token = await preferencesHelper.getToken();
+    final uri = Uri.parse(url);
+
+    final request = http.MultipartRequest('POST', uri);
+
+    // Add headers
+    final headers = <String, String>{};
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Token $token';
+    }
+    request.headers.addAll(headers);
+
+    // Add text fields
+    fields.forEach((key, value) {
+      request.fields[key] = value;
+    });
+
+    // Add file if provided
+    if (filePath != null && filePath.isNotEmpty) {
+      request.files.add(await http.MultipartFile.fromPath(fileFieldName, filePath));
+    }
+
+    try {
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 10));
+      final response = await http.Response.fromStream(streamedResponse);
+      return _processResponse(response);
+    } catch (e) {
+      debugPrint('ApiClient UPLOAD error: $e');
+      throw NetworkException("Failed to connect to the server.");
+    }
+  }
+
+  /// Build a [Uri] with optional query parameters.
   Uri _buildUri(String url, Map<String, String>? queryParameters) {
     final uri = Uri.parse(url);
     if (queryParameters != null && queryParameters.isNotEmpty) {
@@ -140,6 +183,7 @@ class ApiClient {
     return uri;
   }
 
+  /// Merges default headers with the optional `Authorization` token
   Future<Map<String, String>> _buildHeaders({
     required String? token,
     Map<String, String>? customHeaders,
@@ -156,6 +200,7 @@ class ApiClient {
     return defaultHeaders;
   }
 
+  /// Checks network connectivity before making a request.
   Future<void> _checkInternetConnection() async {
     final connected = await NetworkChecker.hasConnection();
     if (!connected) {
@@ -163,6 +208,7 @@ class ApiClient {
     }
   }
 
+  /// Processes the HTTP response; throws ServerException if status != 2xx.
   dynamic _processResponse(http.Response response) {
     final statusCode = response.statusCode;
     if (statusCode >= 200 && statusCode < 300) {

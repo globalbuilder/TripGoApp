@@ -10,32 +10,25 @@ class AppLocalizations {
 
   AppLocalizations(this.locale);
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   static AppLocalizations? of(BuildContext context) {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
   Future<bool> load() async {
-    // Load the JSON file from assets/translations/ (e.g., en.json or ar.json).
-    String jsonString = await rootBundle
-        .loadString('assets/translations/${locale.languageCode}.json');
+    String jsonString = await rootBundle.loadString('assets/translations/${locale.languageCode}.json');
     Map<String, dynamic> jsonMap = json.decode(jsonString);
-
-    _localizedStrings =
-        jsonMap.map((key, value) => MapEntry(key, value.toString()));
+    _localizedStrings = jsonMap.map((key, value) => MapEntry(key, value.toString()));
     return true;
   }
 
-  /// Retrieves the localized string for the given [key].
   String translate(String key) {
     return _localizedStrings[key] ?? key;
   }
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
