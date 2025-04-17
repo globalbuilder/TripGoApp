@@ -1,113 +1,125 @@
-// lib/app_router.dart
-
 import 'package:flutter/material.dart';
 
-// Existing imports
+// ── App‑level pages ─────────────────────────────────────────
 import 'features/app/presentation/pages/splash_screen.dart';
 import 'features/app/presentation/pages/home_screen.dart';
+import 'features/app/presentation/pages/currency_converter_screen.dart';
+
+// ── Accounts ───────────────────────────────────────────────
 import 'features/accounts/presentation/pages/login_screen.dart';
 import 'features/accounts/presentation/pages/registration_screen.dart';
 import 'features/accounts/presentation/pages/profile_screen.dart';
 import 'features/accounts/presentation/pages/profile_edit_screen.dart';
 import 'features/accounts/presentation/pages/password_change_screen.dart';
 
-// NEW: import your SettingsScreen
+// ── Notifications ─────────────────────────────────────────
+import 'features/attractions/domain/entities/attraction_entity.dart';
+import 'features/notifications/presentation/pages/notifications_screen.dart';
+import 'features/notifications/presentation/pages/notification_detail_screen.dart';
+
+// ── Settings ───────────────────────────────────────────────
 import 'features/settings/presentation/pages/settings_screen.dart';
 
-// NEW: import Attractions pages
+// ── Attractions (incl. map / feedback / favourites) ───────
 import 'features/attractions/presentation/pages/categories_screen.dart';
 import 'features/attractions/presentation/pages/attractions_screen.dart';
 import 'features/attractions/presentation/pages/attraction_detail_screen.dart';
 import 'features/attractions/presentation/pages/favorites_screen.dart';
 import 'features/attractions/presentation/pages/search_attraction_screen.dart';
 import 'features/attractions/presentation/pages/feedback_screen.dart';
-import 'features/attractions/presentation/pages/currency_converter_screen.dart';
 import 'features/attractions/presentation/pages/map_screen.dart';
 
 class AppRouter {
-  // Existing route constants
-  static const String splash = '/splash';
-  static const String home = '/home';
-  static const String login = '/login';
-  static const String register = '/register';
-  static const String profile = '/profile';
-  static const String profileEdit = '/profile/edit';
-  static const String changePassword = '/change-password';
-  static const String settings = '/settings';
+  // ── route names (constants) ──────────────────────────────
+  static const splash = '/splash';
+  static const home = '/home';
 
-  // NEW: route constants for attractions
-  static const String categories = '/categories';
-  static const String attractions = '/attractions';
-  static const String attractionDetail = '/attraction-detail';
-  static const String favorites = '/favorites';
-  static const String searchAttractions = '/search-attractions';
-  static const String feedback = '/feedback';
-  static const String currencyConverter = '/currency-converter';
-  static const String map = '/map';
+  // accounts
+  static const login = '/login';
+  static const register = '/register';
+  static const profile = '/profile';
+  static const profileEdit = '/profile/edit';
+  static const changePassword = '/change-password';
 
+  // misc
+  static const settings = '/settings';
+  static const currencyConverter = '/currency-converter';
+
+  // attractions
+  static const categories = '/categories';
+  static const attractions = '/attractions';
+  static const attractionDetail = '/attraction-detail';
+  static const favorites = '/favorites';
+  static const searchAttractions = '/search-attractions';
+  static const feedback = '/feedback';
+  static const map = '/map';
+
+  // notifications
+  static const notifications = '/notifications';
+  static const notificationDetail = '/notification-detail';
+
+  // ── on‑generate‑route ────────────────────────────────────
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      // Existing routes
+      // splash / home
       case splash:
-        return MaterialPageRoute(builder: (_) => const SplashScreen());
+        return _page(const SplashScreen());
       case home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return _page(const HomeScreen());
+
+      // ─────────── accounts
       case login:
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
+        return _page(const LoginScreen());
       case register:
-        return MaterialPageRoute(builder: (_) => const RegistrationScreen());
+        return _page(const RegistrationScreen());
       case profile:
-        return MaterialPageRoute(builder: (_) => const ProfileScreen());
+        return _page(const ProfileScreen());
       case profileEdit:
-        return MaterialPageRoute(builder: (_) => const ProfileEditScreen());
+        return _page(const ProfileEditScreen());
       case changePassword:
-        return MaterialPageRoute(builder: (_) => const PasswordChangeScreen());
+        return _page(const PasswordChangeScreen());
 
+      // settings
       case AppRouter.settings:
-        return MaterialPageRoute(builder: (_) => const SettingsScreen());
+        return _page(const SettingsScreen());
 
-      // NEW: Attractions Feature
+      // ─────────── attractions
       case categories:
-        return MaterialPageRoute(builder: (_) => const CategoriesPage());
+        return _page(const CategoriesPage());
       case attractions:
-        return MaterialPageRoute(builder: (_) => const AttractionsPage());
+        return _page(const AttractionsPage());
       case attractionDetail:
-        // Expecting an int argument for attractionId
-        final attractionId = settings.arguments as int;
-        return MaterialPageRoute(
-          builder: (_) => AttractionDetailPage(attractionId: attractionId),
-        );
+        final id = settings.arguments as int;
+        return _page(AttractionDetailPage(attractionId: id));
       case favorites:
-        return MaterialPageRoute(builder: (_) => const FavoritesPage());
+        return _page(const FavoritesPage());
       case searchAttractions:
-        return MaterialPageRoute(builder: (_) => const SearchAttractionPage());
+        return _page(const SearchAttractionPage());
       case currencyConverter:
-        return MaterialPageRoute(builder: (_) => const CurrencyConverterScreen());
+        return _page(const CurrencyConverterScreen());
       case feedback:
-        // Expecting a Map with "attractionId" & optional "existingFeedback"
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
-        final attractionId = args['attractionId'] as int? ?? 0;
-        // You could cast existingFeedback to List<FeedbackEntity> if needed
-        return MaterialPageRoute(
-          builder: (_) => FeedbackPage(
-            attractionId: attractionId,
-            // If you have a typed list, parse it. Otherwise, pass empty or raw
-            existingFeedback: const [],
-          ),
-        );
+        // we now pass ONLY the id
+        final id = settings.arguments as int;
+        return _page(FeedbackPage(attractionId: id));
       case map:
-        // Expecting a list of AttractionEntity or empty
-        final attractionsList = settings.arguments as List? ?? [];
-        return MaterialPageRoute(
-          builder: (_) => MapScreen(
-            attractions: attractionsList.cast(), // if typed
-          ),
-        );
+        final list =
+            (settings.arguments as List<dynamic>? ?? <dynamic>[])
+                .cast<AttractionEntity>();
+        return _page(MapScreen(attractions: list));
 
-      // Default
+      // ─────────── notifications
+      case notifications:
+        return _page(const NotificationsScreen());
+      case notificationDetail:
+        final id = settings.arguments as int;
+        return _page(NotificationDetailScreen(id: id));
+
       default:
-        // If no matching route, fall back to splash
-        return MaterialPageRoute(builder: (_) => const SplashScreen());
+        return _page(const SplashScreen());
     }
   }
+
+  // helper – less boiler‑plate
+  static MaterialPageRoute _page(Widget child) =>
+      MaterialPageRoute(builder: (_) => child);
 }

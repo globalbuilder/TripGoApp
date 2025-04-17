@@ -1,23 +1,24 @@
-import 'package:trip_go/core/utils/api_client.dart';
-import 'package:trip_go/core/constants/api_endpoints.dart';
+import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/utils/api_client.dart';
 
 import '../models/category_model.dart';
 import '../models/attraction_model.dart';
 import '../models/favorite_model.dart';
+import '../models/feedback_model.dart';
 
 abstract class IAttractionsRemoteDataSource {
-  // Categories
+  // ---------------- CATEGORIES ----------------
   Future<List<CategoryModel>> getCategories();
   Future<List<AttractionModel>> getCategoryAttractions(int categoryId);
 
-  // Attractions
+  // ---------------- ATTRACTIONS ---------------
   Future<List<AttractionModel>> getAllAttractions();
   Future<AttractionModel> getAttractionDetail(int attractionId);
 
-  // Search
+  // ---------------- SEARCH --------------------
   Future<List<AttractionModel>> searchAttractions(String query);
 
-  // Feedback
+  // ---------------- FEEDBACK ------------------
   Future<void> createFeedback({
     required int attractionId,
     required int rating,
@@ -25,7 +26,10 @@ abstract class IAttractionsRemoteDataSource {
   });
   Future<void> deleteFeedback(int feedbackId);
 
-  // Favorites
+  /// Fetch **all** feedback entries of a single attraction.
+  Future<List<FeedbackModel>> getAttractionFeedbacks(int attractionId);
+
+  // ---------------- FAVOURITES ----------------
   Future<List<FavoriteModel>> getFavorites();
   Future<void> addFavorite(int attractionId);
   Future<void> removeFavorite(int attractionId);
@@ -33,111 +37,105 @@ abstract class IAttractionsRemoteDataSource {
 
 class AttractionsRemoteDataSourceImpl implements IAttractionsRemoteDataSource {
   final ApiClient apiClient;
-
   AttractionsRemoteDataSourceImpl({required this.apiClient});
 
-  // -----------------------
-  // 1) CATEGORIES
-  // -----------------------
+  // ================= 1) CATEGORIES =================
   @override
   Future<List<CategoryModel>> getCategories() async {
-    final response = await apiClient.get(ApiEndpoints.categories);
-    // response is likely a list of JSON objects
-    return (response as List)
-        .map((json) => CategoryModel.fromJson(json))
+    final res = await apiClient.get(ApiEndpoints.categories);
+    return (res as List)
+        .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
   @override
-  Future<List<AttractionModel>> getCategoryAttractions(int categoryId) async {
-    final url = ApiEndpoints.categoryAttractions.replaceAll('<id>', categoryId.toString());
-    final response = await apiClient.get(url);
-    return (response as List)
-        .map((json) => AttractionModel.fromJson(json))
+  Future<List<AttractionModel>> getCategoryAttractions(int id) async {
+    final url = ApiEndpoints.categoryAttractions.replaceAll('<id>', '$id');
+    final res = await apiClient.get(url);
+    return (res as List)
+        .map((e) => AttractionModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
-  // -----------------------
-  // 2) ATTRACTIONS
-  // -----------------------
+  // ================= 2) ATTRACTIONS ================
   @override
   Future<List<AttractionModel>> getAllAttractions() async {
-    final response = await apiClient.get(ApiEndpoints.attractions);
-    return (response as List)
-        .map((json) => AttractionModel.fromJson(json))
+    final res = await apiClient.get(ApiEndpoints.attractions);
+    return (res as List)
+        .map((e) => AttractionModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
   @override
-  Future<AttractionModel> getAttractionDetail(int attractionId) async {
-    final url = ApiEndpoints.attractionDetail.replaceAll('<id>', attractionId.toString());
-    final response = await apiClient.get(url);
-    return AttractionModel.fromJson(response);
+  Future<AttractionModel> getAttractionDetail(int id) async {
+    final url = ApiEndpoints.attractionDetail.replaceAll('<id>', '$id');
+    final res = await apiClient.get(url);
+    return AttractionModel.fromJson(res as Map<String, dynamic>);
   }
 
-  // -----------------------
-  // 3) SEARCH
-  // -----------------------
+  // ================= 3) SEARCH =====================
   @override
-  Future<List<AttractionModel>> searchAttractions(String query) async {
-    // Using ?search= if your DRF endpoint supports search filtering
-    final response = await apiClient.get(
+  Future<List<AttractionModel>> searchAttractions(String q) async {
+    final res = await apiClient.get(
       ApiEndpoints.attractions,
-      queryParameters: {'search': query},
+      queryParameters: {'search': q},
     );
-    return (response as List)
-        .map((json) => AttractionModel.fromJson(json))
+    return (res as List)
+        .map((e) => AttractionModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
-  // -----------------------
-  // 4) FEEDBACK
-  // -----------------------
+  // ================= 4) FEEDBACK ===================
   @override
   Future<void> createFeedback({
     required int attractionId,
     required int rating,
     String? comment,
   }) async {
-    final body = {
-      'attraction': attractionId.toString(),
-      'rating': rating.toString(),
-      'comment': comment ?? '',
-    };
-    await apiClient.post(ApiEndpoints.feedbackCreate, body: body);
+    await apiClient.post(
+      ApiEndpoints.feedback,
+      body: {
+        'attraction': '$attractionId',
+        'rating': '$rating',
+        'comment': comment ?? '',
+      },
+    );
   }
 
   @override
-  Future<void> deleteFeedback(int feedbackId) async {
-    final url = ApiEndpoints.feedbackDelete.replaceAll('<id>', feedbackId.toString());
+  Future<void> deleteFeedback(int id) async {
+    final url = ApiEndpoints.feedbackDelete.replaceAll('<id>', '$id');
     await apiClient.delete(url);
   }
 
-  // -----------------------
-  // 5) FAVORITES
-  // -----------------------
+  @override
+  Future<List<FeedbackModel>> getAttractionFeedbacks(int attractionId) async {
+    // We now hit /api/feedback/?attraction=<id>
+    final res = await apiClient.get(
+      ApiEndpoints.feedback,
+      queryParameters: {'attraction': '$attractionId'},
+    );
+    return (res as List)
+        .map((e) => FeedbackModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  // ================= 5) FAVOURITES ================
   @override
   Future<List<FavoriteModel>> getFavorites() async {
-    final response = await apiClient.get(ApiEndpoints.favorites);
-    return (response as List)
-        .map((json) => FavoriteModel.fromJson(json))
+    final res = await apiClient.get(ApiEndpoints.favorites);
+    return (res as List)
+        .map((e) => FavoriteModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
   @override
-  Future<void> addFavorite(int attractionId) async {
-    final body = {'attraction': attractionId.toString()};
-    await apiClient.post(ApiEndpoints.addFavorite, body: body);
-  }
+  Future<void> addFavorite(int id) async =>
+      apiClient.post(ApiEndpoints.addFavorite, body: {'attraction': '$id'});
 
   @override
-  Future<void> removeFavorite(int attractionId) async {
-    // The removeFavorite endpoint expects a DELETE with body {"attraction": id}
-    final body = {'attraction': attractionId.toString()};
-    await apiClient.delete(ApiEndpoints.removeFavorite, queryParameters: body);
-    // Alternatively, if your backend expects a JSON body, you'd do:
-    // await apiClient.delete(ApiEndpoints.removeFavorite, headers: {...}, body: {...});
-    // but many HTTP clients don’t allow body in DELETE, so you might have
-    // to do a custom approach or pass the ID via query parameters.
+  Future<void> removeFavorite(int id) async {
+    await apiClient
+        .post(ApiEndpoints.removeFavorite, body: {'attraction': '$id'});
   }
 }

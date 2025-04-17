@@ -29,6 +29,8 @@ dependencies:
   dartz: ^0.10.1
   cached_network_image: ^3.4.1
   google_maps_flutter: ^2.10.1
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
 
 dev_dependencies:
   flutter_test:
@@ -44,4 +46,5 @@ flutter:
 
   assets:
     - assets/images/avatar_placeholder.png
+    - assets/images/empty_image_placeholder.jpg
 

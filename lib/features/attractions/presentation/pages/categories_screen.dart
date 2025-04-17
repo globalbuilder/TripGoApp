@@ -77,7 +77,7 @@ class _CategoryGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final placeholder = "https://via.placeholder.com/300x200.png?text=No+Image";
+    const String assetPlaceholder = 'assets/images/empty_image_placeholder.jpg';
 
     return GestureDetector(
       onTap: () {
@@ -101,12 +101,13 @@ class _CategoryGridItem extends StatelessWidget {
               // Category image (with placeholder if null)
               Positioned.fill(
                 child: CachedNetworkImage(
-                  imageUrl: category.image ?? placeholder,
+                  imageUrl: category.image ?? '',
                   fit: BoxFit.cover,
-                  placeholder: (ctx, url) => const Center(
+                  placeholder: (_, __) => const Center(
                     child: CircularProgressIndicator(),
                   ),
-                  errorWidget: (ctx, url, err) => const Icon(Icons.error),
+                  errorWidget: (_, __, ___) =>
+                      Image.asset(assetPlaceholder, fit: BoxFit.cover),
                 ),
               ),
               // Gradient overlay at bottom

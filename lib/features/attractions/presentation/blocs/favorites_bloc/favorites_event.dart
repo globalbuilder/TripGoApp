@@ -1,29 +1,20 @@
 // lib/features/attractions/presentation/blocs/favorites_bloc/favorites_event.dart
-
 import 'package:equatable/equatable.dart';
 
 abstract class FavoritesEvent extends Equatable {
   const FavoritesEvent();
-
   @override
   List<Object?> get props => [];
 }
 
-class FetchFavoritesEvent extends FavoritesEvent {
-  const FetchFavoritesEvent();
+class FetchFavorites extends FavoritesEvent {
+  const FetchFavorites();
 }
 
-class AddFavoriteEvent extends FavoritesEvent {
+class ToggleFavorite extends FavoritesEvent {
+  /// ID of the attraction the user just tapped.
   final int attractionId;
-  const AddFavoriteEvent(this.attractionId);
-
-  @override
-  List<Object?> get props => [attractionId];
-}
-
-class RemoveFavoriteEvent extends FavoritesEvent {
-  final int attractionId;
-  const RemoveFavoriteEvent(this.attractionId);
+  const ToggleFavorite(this.attractionId);
 
   @override
   List<Object?> get props => [attractionId];

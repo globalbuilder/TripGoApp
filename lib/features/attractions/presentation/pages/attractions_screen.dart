@@ -81,12 +81,11 @@ class _AttractionsPageState extends State<AttractionsPage> {
 class _AttractionGridItem extends StatelessWidget {
   final AttractionEntity attraction;
 
-  const _AttractionGridItem({Key? key, required this.attraction})
-      : super(key: key);
+  const _AttractionGridItem({required this.attraction});
 
   @override
   Widget build(BuildContext context) {
-    final placeholder = "https://via.placeholder.com/300x200.png?text=No+Image";
+    const String assetPlaceholder = 'assets/images/empty_image_placeholder.jpg';
 
     return GestureDetector(
       onTap: () {
@@ -105,13 +104,13 @@ class _AttractionGridItem extends StatelessWidget {
             children: [
               Positioned.fill(
                 child: CachedNetworkImage(
-                  imageUrl: attraction.image ?? placeholder,
+                  imageUrl: attraction.image ?? '',
                   fit: BoxFit.cover,
-                  placeholder: (ctx, url) => const Center(
+                  placeholder: (_, __) => const Center(
                     child: CircularProgressIndicator(),
                   ),
-                  errorWidget: (ctx, url, err) =>
-                      const Center(child: Icon(Icons.error)),
+                  errorWidget: (_, __, ___) =>
+                      Image.asset(assetPlaceholder, fit: BoxFit.cover),
                 ),
               ),
               // Dark overlay + name

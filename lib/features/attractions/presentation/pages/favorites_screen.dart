@@ -1,6 +1,7 @@
+// lib/features/attractions/presentation/pages/favorites_screen.dart
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../blocs/favorites_bloc/favorites_bloc.dart';
 import '../blocs/favorites_bloc/favorites_event.dart';
@@ -10,7 +11,6 @@ import 'attraction_detail_screen.dart';
 
 class FavoritesPage extends StatefulWidget {
   static const routeName = '/favorites';
-
   const FavoritesPage({Key? key}) : super(key: key);
 
   @override
@@ -21,36 +21,39 @@ class _FavoritesPageState extends State<FavoritesPage> {
   @override
   void initState() {
     super.initState();
-    context.read<FavoritesBloc>().add(const FetchFavoritesEvent());
+    context.read<FavoritesBloc>().add(const FetchFavorites());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Favorites"),
-      ),
+      appBar: AppBar(title: const Text('My Favorites')),
       body: BlocConsumer<FavoritesBloc, FavoritesState>(
-        listener: (context, state) {
-          if (state.status == FavoritesStatus.error) {
+        listener: (_, s) {
+          if (s.status == FavoritesStatus.error) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? "Error fetching favorites.")),
+              SnackBar(
+                  content: Text(s.errorMessage ?? 'Error loading favorites')),
             );
           }
         },
-        builder: (context, state) {
-          if (state.status == FavoritesStatus.loading) {
+        buildWhen: (p, c) => p.favorites != c.favorites || p.status != c.status,
+        builder: (_, s) {
+          if (s.status == FavoritesStatus.loading && s.favorites.isEmpty) {
             return const Center(child: CircularProgressIndicator());
-          } else if (state.favorites.isEmpty) {
-            return const Center(child: Text("No favorites found."));
+          }
+          if (s.favorites.isEmpty) {
+            return const Center(child: Text('No favorites found.'));
           }
 
-          return ListView.builder(
-            itemCount: state.favorites.length,
-            itemBuilder: (context, index) {
-              final fav = state.favorites[index];
-              return _FavoriteListItem(favorite: fav);
-            },
+          return RefreshIndicator(
+            onRefresh: () async =>
+                context.read<FavoritesBloc>().add(const FetchFavorites()),
+            child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: s.favorites.length,
+              itemBuilder: (_, i) => _FavoriteTile(fav: s.favorites[i]),
+            ),
           );
         },
       ),
@@ -58,45 +61,55 @@ class _FavoritesPageState extends State<FavoritesPage> {
   }
 }
 
-class _FavoriteListItem extends StatelessWidget {
-  final FavoriteEntity favorite;
-
-  const _FavoriteListItem({Key? key, required this.favorite}) : super(key: key);
+class _FavoriteTile extends StatelessWidget {
+  final FavoriteEntity fav;
+  const _FavoriteTile({required this.fav});
 
   @override
   Widget build(BuildContext context) {
-    final placeholder = "https://via.placeholder.com/200x150.png?text=No+Image";
+    const assetPlaceholder = 'assets/images/empty_image_placeholder.jpg';
+    final img = fav.attractionImage; // ← use the new field
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      elevation: 2,
       child: ListTile(
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(6),
-          child: CachedNetworkImage(
-            imageUrl: placeholder, // or if you stored the attraction's image
-            width: 60,
-            height: 60,
-            fit: BoxFit.cover,
+          child: img == null || img.isEmpty
+              ? Image.asset(assetPlaceholder,
+                  width: 60, height: 60, fit: BoxFit.cover)
+              : CachedNetworkImage(
+                  imageUrl: img,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, __, ___) =>
+                      Image.asset(assetPlaceholder, fit: BoxFit.cover),
+                  placeholder: (_, __) => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+        ),
+        title: Text(
+          fav.attractionName ?? 'Attraction #${fav.attractionId}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text('ID: ${fav.attractionId}'),
+        trailing: IconButton(
+          tooltip: 'Remove from favorites',
+          icon: const Icon(Icons.favorite, color: Colors.red),
+          onPressed: () => context
+              .read<FavoritesBloc>()
+              .add(ToggleFavorite(fav.attractionId)),
+        ),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                AttractionDetailPage(attractionId: fav.attractionId),
           ),
         ),
-        title: Text(favorite.attractionName ?? "Attraction #${favorite.attractionId}"),
-        subtitle: Text("ID: ${favorite.attractionId}"),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline),
-          onPressed: () {
-            context.read<FavoritesBloc>().add(RemoveFavoriteEvent(favorite.attractionId));
-          },
-        ),
-        onTap: () {
-          // Navigate to attraction detail if you want
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AttractionDetailPage(attractionId: favorite.attractionId),
-            ),
-          );
-        },
       ),
     );
   }

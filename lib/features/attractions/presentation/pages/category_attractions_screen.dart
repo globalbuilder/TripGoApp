@@ -17,7 +17,7 @@ class CategoryAttractionsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final placeholder = "https://via.placeholder.com/300x200.png?text=No+Image";
+    const String assetPlaceholder = 'assets/images/empty_image_placeholder.jpg';
 
     return Scaffold(
       body: BlocBuilder<CategoriesBloc, CategoriesState>(
@@ -48,8 +48,13 @@ class CategoryAttractionsPage extends StatelessWidget {
                       fit: StackFit.expand,
                       children: [
                         CachedNetworkImage(
-                          imageUrl: category.image ?? placeholder,
+                          imageUrl: category.image ?? '',
                           fit: BoxFit.cover,
+                          placeholder: (_, __) => const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                          errorWidget: (_, __, ___) =>
+                              Image.asset(assetPlaceholder, fit: BoxFit.cover),
                         ),
                         Container(
                           decoration: const BoxDecoration(
